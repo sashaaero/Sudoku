@@ -1,11 +1,13 @@
 from pprint import pprint
 from cell import Cell
+from random import randint, choice, shuffle
 from PyQt5.QtWidgets import QWidget
 
 class Field(QWidget):
 
     def __init__(self, size=9):
-        self.fsize = size
+        self.fsize = size # I use fsize because size is inherited property of QWidget
+        self.dsize = size // 3 # district size
         self.field = self._create_field()
         self._generate_field()
 
@@ -54,9 +56,52 @@ class Field(QWidget):
         return shifted_line
 
     def _transpose(self):
-        for i in range(self.fsize):
-            for j in range(self.fsize):
-                self.field[i][j], self.field[j][i] = self.field[j][i], self.field[i][j]
+        """
+        Transposing the field
+        """
+        self.field = list(map(list, zip(*self.field)))
+
+    def _swap_rows_inside_district(self):
+        """
+        Swaps rows inside district
+        """
+        tmp = [0] * self.fsize
+        d_num = randint(0, self.dsize - 1) # pick random horizontal district
+        rows_l = [i for i in range(self.dsize)]
+        del rows_l[choice(rows_l)]
+        """
+            Some explanation
+            We just pick exceptional row from list of 3 rows
+            So, others 2 rows will be swapped
+        """
+        self._put_line_in_line(tmp, self.field[d_num * 3 + rows_l[0]])
+        self._put_line_in_line(
+            self.field[d_num * 3 + rows_l[0]],
+            self.field[d_num * 3 + rows_l[1]])
+
+        self._put_line_in_line(self.field[d_num * 3 + rows_l[1]], tmp)
+
+    def _swap_districts_rows(self):
+        """
+        Swaps districts as rows (e.g. swap first 3 rows with last 3 rows)
+        """
+        districts = [i for i in range(self.dsize)]
+        del districts[choice(districts)]
+
+        for i in range(self.dsize):
+            swap = [0] * self.fsize
+            self._put_line_in_line(
+                swap,
+                self.field[self.dsize * districts[0] + i]
+            )
+            self._put_line_in_line(
+                self.field[self.dsize * districts[0] + i],
+                self.field[self.dsize * districts[1] + i]
+            )
+            self._put_line_in_line(
+                self.field[self.dsize * districts[1] + i],
+                swap
+            )
 
     def _generate_field(self):
         """
@@ -72,12 +117,55 @@ class Field(QWidget):
             ins_line = self._shifted_line(list(range(1, 10)), calc_shift(i))
             self._put_line_in_line(self.field[i], ins_line)
 
-        self._transpose()
+        # self._transpose()
+        # self._swap_rows_inside_district()
+        # self._swap_districts_rows()
+        level = 3 # number of operations to shake field
+        operations = [self._transpose for i in range(level)]
+        operations.extend([self._swap_districts_rows for i in range(level)])
+        operations.extend([self._swap_rows_inside_district for i in range(level)])
 
+        shuffle(operations)
+
+        for operation in operations:
+            operation()
+
+    def validate_field(self):
+        """
+        Checks if generated field is valid
+        Can be used as solve checker
+        :return: true if field is valid, false otherwise
+        """
+        # check rows
+        for row in self.field:
+            if len(set(row)) != self.fsize:
+                return False
+
+        # check columns
+        for j in range(self.fsize):
+            if len(set([self.field[i][j] for i in range(self.fsize)])) != self.fsize:
+                return False
+
+        # check districts
+        d_size = self.fsize // 3
+        for i in range(d_size):
+            for j in range(d_size):
+                # start point is i * 3, j * 3
+                d_list = []
+                for x in range(d_size):
+                    for y in range(d_size):
+                        d_list.append(self.field[i * d_size + x][j * d_size + y])
+
+                if len(set(d_list)) != self.fsize:
+                    return False
+
+        return True
 
 
 def main():
     field = Field()
     field.print()
+
+    print(field.validate_field())
 
 main()
