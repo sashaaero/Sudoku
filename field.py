@@ -3,17 +3,24 @@ from cell import Cell
 from random import randint, choice, shuffle
 from PyQt5.QtWidgets import QWidget
 
+class NotValidFieldException(Exception):
+    pass
+
+
 class Field(QWidget):
 
     def __init__(self, size=9):
-        self.fsize = size # I use fsize because size is inherited property of QWidget
-        self.dsize = size // 3 # district size
+        self.fsize = size  # I use fsize because size is inherited property of QWidget
+        self.dsize = size // 3  # district size
         self.field = self._create_field()
         self._generate_field()
+        if not self.validate_field():
+            raise NotValidFieldException
 
     def print(self):
         for row in self.field:
             print('\t'.join(map(str, row)))
+
             print()
 
     def _create_field(self):
@@ -66,7 +73,7 @@ class Field(QWidget):
         Swaps rows inside district
         """
         tmp = [0] * self.fsize
-        d_num = randint(0, self.dsize - 1) # pick random horizontal district
+        d_num = randint(0, self.dsize - 1)  # pick random horizontal district
         rows_l = [i for i in range(self.dsize)]
         del rows_l[choice(rows_l)]
         """
@@ -117,10 +124,7 @@ class Field(QWidget):
             ins_line = self._shifted_line(list(range(1, 10)), calc_shift(i))
             self._put_line_in_line(self.field[i], ins_line)
 
-        # self._transpose()
-        # self._swap_rows_inside_district()
-        # self._swap_districts_rows()
-        level = 3 # number of operations to shake field
+        level = 100  # number of operations to shake field
         operations = [self._transpose for i in range(level)]
         operations.extend([self._swap_districts_rows for i in range(level)])
         operations.extend([self._swap_rows_inside_district for i in range(level)])
@@ -161,11 +165,17 @@ class Field(QWidget):
 
         return True
 
+    def __eq__(self, other):
+        for i in range(self.fsize):
+            for j in range(self.fsize):
+                if self.field[i][j] != other.field[i][j]:
+                    return False
+
+        return True
+
 
 def main():
     field = Field()
     field.print()
-
-    print(field.validate_field())
 
 main()
