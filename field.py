@@ -1,60 +1,56 @@
-from pprint import pprint
-from cell import Cell
 from random import randint, choice, shuffle
-from PyQt5.QtWidgets import QWidget, QGridLayout
+from copy import deepcopy as copy
 
-class Field(QWidget):
+class Field():
 
-    def __init__(self, field=None, solve=None, size=9):
-        #super().__init__()
-        self.fsize = size  # I use fsize because size is inherited property of QWidget
+    def __init__(self, field=None, size=9):
+        self.size = size
         self.dsize = size // 3  # district size
-        self.field = self.create_field()
+        self.field = self.create()
+
         if field:
-            self.set_from_line(field)
-        elif solve:
-            try:
-                self.solve(solve)
-                assert self.validate_field()
-            except AssertionError:
-                print("This sudoku have no solutions")
+           self.set(field)
         else:
-            self.generate_field()
-            if not self.validate_field():
-                raise NotValidFieldException
-
-        self.initUI()
-
-
-    def initUI(self):
-        pass
-        #grid = QGridLayout()
-        #self.setLayout(grid)
-
-
-    def set_from_line(self, line):
-        for i in range(self.fsize):
-            for j in range(self.fsize):
-                self.field[i][j] = Cell(int(line[i * self.fsize + j]))
+            while not self.validate():
+                self.generate()
 
     def __str__(self):
         return '\n\n'.join(['\t'.join(map(str, row)) for row in self.field])
 
-    def create_field(self):
+    def __eq__(self, other):
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.field[i][j] != other.field[i][j]:
+                    return False
+
+        return True
+
+    def set(self, field):
+        if type(field) == str:
+            for i in range(self.size):
+                for j in range(self.size):
+                    self.field[i][j] = int(field[i * self.size + j])
+
+        elif type(field) == list:
+            for i in range(self.size):
+                for j in range(self.size):
+                    self.field[i][j] = field[i][j]
+
+    def create(self):
         """
         Creates a field with size of given size
         :return: field (double dimensioned list)
         """
         field = []
-        for x in range(self.fsize):
+        for x in range(self.size):
             field.append(list())
-            for y in range(self.fsize):
-                field[x].append(Cell())
+            for y in range(self.size):
+                field[x].append(0)
 
         return field
 
     @staticmethod
-    def put_line_in_line(line1, line2):
+    def set_values(line1, line2):
         """
         Put values from line1 into line1 in place
         :param line1: line that should be edited
@@ -89,7 +85,7 @@ class Field(QWidget):
         """
         Swaps rows inside district
         """
-        tmp = [0] * self.fsize
+        tmp = [0] * self.size
         d_num = randint(0, self.dsize - 1)  # pick random horizontal district
         rows_l = [i for i in range(self.dsize)]
         del rows_l[choice(rows_l)]
@@ -98,12 +94,12 @@ class Field(QWidget):
             We just pick exceptional row from list of 3 rows
             So, others 2 rows will be swapped
         """
-        self.put_line_in_line(tmp, self.field[d_num * 3 + rows_l[0]])
-        self.put_line_in_line(
+        self.set_values(tmp, self.field[d_num * 3 + rows_l[0]])
+        self.set_values(
             self.field[d_num * 3 + rows_l[0]],
             self.field[d_num * 3 + rows_l[1]])
 
-        self.put_line_in_line(self.field[d_num * 3 + rows_l[1]], tmp)
+        self.set_values(self.field[d_num * 3 + rows_l[1]], tmp)
 
     def swap_districts_rows(self):
         """
@@ -113,33 +109,33 @@ class Field(QWidget):
         del districts[choice(districts)]
 
         for i in range(self.dsize):
-            swap = [0] * self.fsize
-            self.put_line_in_line(
+            swap = [0] * self.size
+            self.set_values(
                 swap,
                 self.field[self.dsize * districts[0] + i]
             )
-            self.put_line_in_line(
+            self.set_values(
                 self.field[self.dsize * districts[0] + i],
                 self.field[self.dsize * districts[1] + i]
             )
-            self.put_line_in_line(
+            self.set_values(
                 self.field[self.dsize * districts[1] + i],
                 swap
             )
 
-    def generate_field(self):
+    def generate(self):
         """
         Generates a field for a game
         :return field: game field
         """
-        district_size = self.fsize // 3
+        district_size = self.size // 3
 
         def calc_shift(n):
             return (n // district_size) + district_size * (n % district_size)
 
         for i in range(len(self.field)):
-            ins_line = self.shifted_line([Cell(i) for i in range(1, 10)], calc_shift(i))
-            self.put_line_in_line(self.field[i], ins_line)
+            ins_line = self.shifted_line([i for i in range(1, 10)], calc_shift(i))
+            self.set_values(self.field[i], ins_line)
 
         level = 100  # number of operations to shake field
         operations = [self.transpose for i in range(level)]
@@ -151,7 +147,7 @@ class Field(QWidget):
         for operation in operations:
             operation()
 
-    def validate_field(self):
+    def validate(self):
         """
         Checks if generated field is valid
         Can be used as solve checker
@@ -159,16 +155,16 @@ class Field(QWidget):
         """
         # check rows
         for row in self.field:
-            if len(set(row)) != self.fsize:
+            if len(set(row)) != self.size:
                 return False
 
         # check columns
-        for j in range(self.fsize):
-            if len(set([self.field[i][j] for i in range(self.fsize)])) != self.fsize:
+        for j in range(self.size):
+            if len(set([self.field[i][j] for i in range(self.size)])) != self.size:
                 return False
 
         # check districts
-        d_size = self.fsize // 3
+        d_size = self.size // 3
         for i in range(d_size):
             for j in range(d_size):
                 # start point is i * 3, j * 3
@@ -177,103 +173,71 @@ class Field(QWidget):
                     for y in range(d_size):
                         d_list.append(self.field[i * d_size + x][j * d_size + y])
 
-                if len(set(d_list)) != self.fsize:
+                if len(set(d_list)) != self.size:
                     return False
 
         return True
 
-    def extract_to_line(self):
-        """
-        extracts current field to a line
-        :return: string representation of field
-        """
-        return ''.join([''.join(map(str, row)) for row in self.field])
-
     @staticmethod
-    def same_row(i, j):
-        return i // 9 == j // 9
-
-    @staticmethod
-    def same_col(i, j):
-        return (i - j) % 9 == 0
-
-    @staticmethod
-    def same_district(i, j):
-        return i // 27 == j // 27 and i % 9 // 3 == j % 9 // 3
-
-    def solve(self, line):
-
-        i = line.find('0')
-        if i == -1:
-            self.set_from_line(line)
-
-        ex_nums = set()
-        for j in range(len(line)):
-            if self.same_row(i, j) or self.same_col(i, j) or self.same_district(i, j):
-                ex_nums.add(line[j])
-
-        print(ex_nums)
-
-        for num in map(str, range(1, 10)):
-            if num not in ex_nums:
-                self.solve(line[:i] + num + line[i + 1:])
-
-    def empty(self):
-        for i in range(self.fsize):
-            for j in range(self.fsize):
-                if self.field[i][j].value == 0:
-                    yield i, j
-
-    def curr_row_and_col(self, i, j):
+    def occupied_nums(field, i, j):
         """
-        Method finds non-empty cells and returns their values
-        :param i: row number
-        :param j: column number
-        :return: set of values
+        :return: set of numbers that are appearing in row, column and district
         """
-        ret = set()
-        for x in range(self.fsize):
-            ret.add(self.field[i][x].value)
-            ret.add(self.field[x][j].value)
+        nums = set()
+        size = len(field)
 
-        return ret
+        for x in range(size):
+            nums.add(field[i][x])
 
-    def curr_district(self, i, j):
-        # i // 27 == j // 27 and i % 9 // 3 == j % 9 // 3
-        ret = set()
-        for x in range(self.fsize):
-            for y in range(self.fsize):
-                a = x * self.fsize + y
-                b = i * self.fsize + j
+        for x in range(size):
+            nums.add(field[x][j])
+
+        for x in range(size):
+            for y in range(size):
+                a = x * size + y
+                b = i * size + j
                 if a // 27 == b // 27 and a % 9 // 3 == b % 9 // 3:
-                    ret.add(self.field[x][y].value)
+                    nums.add(field[x][y])
 
-        return ret
+        return nums
 
-    def mysolve(self):
-        for i, j in self.empty():
-            ex_nums = self.curr_row_and_col(i, j) & self.curr_district(i, j)
+    @staticmethod
+    def empty_cell(field):
+        """
+        :param field: given field
+        :return: empty cell index or -1, -1 if not present
+        """
+        for i in range(len(field)):
+            for j in range(len(field)):
+                if field[i][j] == 0:
+                    return i, j
 
-            print(ex_nums)
+        return -1, -1
 
-            for x in range(1, 10):
-                if x not in ex_nums:
-                    self.field[i][j] = x
+    def solve(self):
+        field_copy = copy(self.field)
 
-    def __eq__(self, other):
-        for i in range(self.fsize):
-            for j in range(self.fsize):
-                if self.field[i][j] != other.field[i][j]:
-                    return False
+        def inner_solver(field):
+            i, j = Field.empty_cell(field)
+            nums = Field.occupied_nums(field, i, j)
 
-        return True
+            if i == -1:
+                self.set(field)
+                return
+
+            for x in set(range(1, 10)) - nums:
+                field[i][j] = x
+                inner_solver(copy(field))
+
+        inner_solver(field_copy)
+        
+        return self.validate()
 
 
 def main():
-    f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
-    field2 = Field(field=f3)
-    print(field2)
-    field2.solve(f3)
-
+    f3 = "530070000600195000098880060800060003400803001700020006060000280000419005000080079"
+    field = Field(field=f3)
+    field.solve()
+    print(field)
 
 main()
