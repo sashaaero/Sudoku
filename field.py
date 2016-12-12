@@ -230,14 +230,18 @@ class Field():
                 inner_solver(copy(field))
 
         inner_solver(field_copy)
-        
+
         return self.validate()
+
+    def at(self, i, j):
+        return str(self.field[i][j]) if self.field[i][j] > 0 else ''
 
 
 def main():
-    f3 = "530070000600195000098880060800060003400803001700020006060000280000419005000080079"
+    f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
     field = Field(field=f3)
-    field.solve()
+    print("Generated Field")
     print(field)
-
-main()
+    field.solve()
+    print("Solved Field")
+    print(field)

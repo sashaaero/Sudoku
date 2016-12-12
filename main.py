@@ -1,14 +1,13 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QGridLayout, QApplication
+from gui import GUI
 
-class Main(QWidget):
+def main():
+    app = QApplication(sys.argv)
 
-    def __init__(self):
-        super().__init__()
-        self.initGUI()
+    ex = GUI()
+    sys.exit(app.exec_())
 
-    def initGUI(self):
-        grid = QGridLayout()
-        self.setLayout(grid)
 
+main()
 
