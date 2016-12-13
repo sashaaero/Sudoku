@@ -1,5 +1,6 @@
 from random import randint, choice, shuffle
 from copy import deepcopy as copy
+from cell import Cell
 
 class Field():
 
@@ -29,12 +30,12 @@ class Field():
         if type(field) == str:
             for i in range(self.size):
                 for j in range(self.size):
-                    self.field[i][j] = int(field[i * self.size + j])
+                    self.field[i][j].set(i, j, int(field[i * self.size + j]))
 
         elif type(field) == list:
             for i in range(self.size):
                 for j in range(self.size):
-                    self.field[i][j] = field[i][j]
+                    self.field[i][j].set(i, j, field[i][j])
 
     def create(self):
         """
@@ -45,7 +46,7 @@ class Field():
         for x in range(self.size):
             field.append(list())
             for y in range(self.size):
-                field[x].append(0)
+                field[x].append(Cell(self, x, y, 0))
 
         return field
 
@@ -209,13 +210,13 @@ class Field():
         """
         for i in range(len(field)):
             for j in range(len(field)):
-                if field[i][j] == 0:
+                if field[i][j].empty():
                     return i, j
 
         return -1, -1
 
     def solve(self):
-        field_copy = copy(self.field)
+        field_copy = [[cell.value for cell in row] for row in self.field]
 
         def inner_solver(field):
             i, j = Field.empty_cell(field)
@@ -234,8 +235,8 @@ class Field():
         return self.validate()
 
     def at(self, i, j):
-        return str(self.field[i][j]) if self.field[i][j] > 0 else ''
-
+        #return str(self.field[i][j]) if not self.field[i][j].empty else ''
+        return self.field[i][j]
 
 def main():
     f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"

@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget,QGridLayout, QPushButton
 from field import Field
+from cell import Cell
 
 class GUI(QWidget):
 
@@ -9,19 +10,17 @@ class GUI(QWidget):
 
         f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
         self.field = Field(field=f3)
-        self.grid = QGridLayout()
-        self.setLayout(self.grid)
-        self.apply()
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(0)
+        grid.setVerticalSpacing(0)
+        self.setLayout(grid)
 
-        self.show()
-
-    def apply(self):
         for i in range(self.field.size):
             for j in range(self.field.size):
-                button = QPushButton(self.field.at(i, j))
-                button.clicked.connect(self.operate)
+                grid.addWidget(self.field.at(i, j), i, j)
 
-                self.grid.addWidget(button, i, j)
+        self.resize(450, 450)
+        self.show()
 
 
     def operate(self):
