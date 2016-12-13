@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import QWidget,QGridLayout, QPushButton
+from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton
 from field import Field
 from cell import Cell
 
-class GUI(QWidget):
 
+class GUI(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -21,7 +21,6 @@ class GUI(QWidget):
 
         self.resize(450, 450)
         self.show()
-
 
     def operate(self):
         print("was called")

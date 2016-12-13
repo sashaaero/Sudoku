@@ -1,6 +1,9 @@
 from random import randint, choice, shuffle
 from copy import deepcopy as copy
 from cell import Cell
+from PyQt5.QtWidgets import QApplication
+import sys
+from time import time
 
 class Field():
 
@@ -13,6 +16,8 @@ class Field():
         else:
             while not self.validate():
                 self.generate()
+
+        self.solved = False
 
     def __str__(self):
         return '\n\n'.join(['\t'.join(map(str, row)) for row in self.field])
@@ -209,7 +214,7 @@ class Field():
         """
         for i in range(len(field)):
             for j in range(len(field)):
-                if field[i][j].empty():
+                if field[i][j] == 0:
                     return i, j
 
         return -1, -1
@@ -217,9 +222,11 @@ class Field():
     def solve(self):
         field_copy = [[cell.value for cell in row] for row in self.field]
         solved = False
+        acc = 0
 
         def inner_solver(field):
             nonlocal solved
+            nonlocal acc
             if solved:
                 return
 
@@ -234,9 +241,13 @@ class Field():
             for x in set(range(1, 10)) - nums:
                 field[i][j] = x
                 inner_solver(copy(field))
+                if solved:
+                    return
+                acc += 1
 
         inner_solver(field_copy)
 
+        print(acc)
         return self.validate()
 
     def at(self, i, j):
@@ -244,13 +255,15 @@ class Field():
         return self.field[i][j]
 
 def main():
+    app = QApplication(sys.argv)
     f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+    #f3 = "1234567890000000000000000000000000000000000000000000000000000000000000000000000000"
     field = Field(field=f3)
-    print("Generated Field")
-    print(field)
+    start = time()
     field.solve()
-    print("Solved Field")
+    print(time() - start)
     print(field)
+    sys.exit(app.exec_())
 
 
 main()
