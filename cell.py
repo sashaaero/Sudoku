@@ -73,7 +73,7 @@ class Cell(QWidget):
 
 
     def mouseReleaseEvent(self, e):
-        #self.emit(SIGNAL('clicked()'))
+        #self.emit(SIGNAL('clicked()')) SASI CHE
         self.active = True
         self.repaint()
 
