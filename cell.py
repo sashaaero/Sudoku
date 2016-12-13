@@ -9,7 +9,8 @@ class Cell(QWidget):
         self.i = i
         self.j = j
         self.value = value
-        #self.resize(50, 50)
+        self.field = field
+        # self.resize(50, 50)
         self.active = False
         self.valid = True
 
@@ -73,8 +74,9 @@ class Cell(QWidget):
 
 
     def mouseReleaseEvent(self, e):
-        #self.emit(SIGNAL('clicked()'))
-        self.active = True
+        # self.emit(SIGNAL('clicked()'))
+        # self.active = True
+        self.field.solve()
         self.repaint()
 
 

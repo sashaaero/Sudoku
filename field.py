@@ -8,9 +8,8 @@ class Field():
         self.size = size
         self.dsize = size // 3  # district size
         self.field = self.create()
-
         if field:
-           self.set(field)
+            self.set(field)
         else:
             while not self.validate():
                 self.generate()
@@ -217,13 +216,19 @@ class Field():
 
     def solve(self):
         field_copy = [[cell.value for cell in row] for row in self.field]
+        solved = False
 
         def inner_solver(field):
+            nonlocal solved
+            if solved:
+                return
+
             i, j = Field.empty_cell(field)
             nums = Field.occupied_nums(field, i, j)
 
             if i == -1:
                 self.set(field)
+                solved = True
                 return
 
             for x in set(range(1, 10)) - nums:
@@ -246,3 +251,6 @@ def main():
     field.solve()
     print("Solved Field")
     print(field)
+
+
+main()
