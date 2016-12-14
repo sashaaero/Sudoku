@@ -1,11 +1,13 @@
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter, QFont, QColor, QPen
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QEvent
 
 class Cell(QWidget):
 
-    def __init__(self, field, i, j, value):
+    def __init__(self, parent, field, i, j, value):
         super().__init__()
+        self.parent = parent
+        self.field = field
         self.i = i
         self.j = j
         self.value = value
@@ -44,6 +46,10 @@ class Cell(QWidget):
         font = QFont('Ubuntu Mono', 24, QFont.Light)
         painter.setFont(font)
 
+        # validate
+        if not self.valid:
+            painter.fillRect(0, 0, self.size().width(), self.size().height(), Qt.red)
+
         # drawing main border
         painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
         painter.drawRect(0, 0, self.size().width(), self.size().height())
@@ -66,16 +72,25 @@ class Cell(QWidget):
             painter.setPen(QPen(Qt.black, 4, Qt.SolidLine))
             painter.drawLine(0, 0, self.size().width(), 0)
 
+        # change color if active
         if self.active:
             painter.setPen(QPen(Qt.blue, 2, Qt.SolidLine))
 
+
         painter.drawText(event.rect(), Qt.AlignCenter, str(self))
 
-
-    def mouseReleaseEvent(self, e):
-        #self.emit(SIGNAL('clicked()')) SASI CHE
+    def activate(self):
         self.active = True
         self.repaint()
 
+    def deactivate(self):
+        self.active = False
+        self.repaint()
 
+    def mouseReleaseEvent(self, e):
+        #self.emit(SIGNAL('clicked()')) SASI CHE
+        self.parent.reactivate(self)
+
+    def keyPressEvent(self, event):
+        print(self.value, ' said that some key was pressed!')
 

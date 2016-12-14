@@ -7,7 +7,8 @@ from time import time
 
 class Field():
 
-    def __init__(self, field=None, size=9):
+    def __init__(self, field=None, size=9, gui=None):
+        self.gui = gui
         self.size = size
         self.dsize = size // 3  # district size
         self.field = self.create()
@@ -50,7 +51,7 @@ class Field():
         for x in range(self.size):
             field.append(list())
             for y in range(self.size):
-                field[x].append(Cell(self, x, y, 0))
+                field[x].append(Cell(self.gui, self, x, y, 0))
 
         return field
 
@@ -226,7 +227,6 @@ class Field():
 
         def inner_solver(field):
             nonlocal solved
-            nonlocal acc
             if solved:
                 return
 
@@ -243,7 +243,6 @@ class Field():
                 inner_solver(copy(field))
                 if solved:
                     return
-                acc += 1
 
         inner_solver(field_copy)
 
@@ -251,13 +250,12 @@ class Field():
         return self.validate()
 
     def at(self, i, j):
-        #return str(self.field[i][j]) if not self.field[i][j].empty else ''
         return self.field[i][j]
 
-def main():
+
+def fmain():
     app = QApplication(sys.argv)
     f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
-    #f3 = "1234567890000000000000000000000000000000000000000000000000000000000000000000000000"
     field = Field(field=f3)
     start = time()
     field.solve()
@@ -266,4 +264,4 @@ def main():
     sys.exit(app.exec_())
 
 
-main()
+# main()
