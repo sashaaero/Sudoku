@@ -246,16 +246,17 @@ class Field():
     def solve(self):
         field_copy = [[cell.value for cell in row] for row in self.field]
         solved = False
-        solves = []
+        solves = 0
 
         def inner_solver(field):
             i, j = Field.empty_cell(field)
             nums = Field.occupied_nums(field, i, j)
 
             if i == -1:
-                # self.set(field)
+                self.set(field)
                 nonlocal solves
-                solves.append(copy(field))
+                solves += 1
+                #solves.append(copy(field))
                 return
 
             for x in set(range(1, 10)) - nums:
@@ -264,16 +265,12 @@ class Field():
 
         inner_solver(field_copy)
 
-        print(len(solves))
-        if len(solves) == 1:
-            self.set(solves[0])
-            if self.validate():
-                return True
-            else:
-                self.set(field_copy)
-                return False
-        else:
-            return False
+        return solves == 1 and self.validate()
+
+    def deletions(self):
+        tier = 25
+        for x in range(tier):
+            pass
 
     def at(self, i, j):
         return self.field[i][j]
@@ -281,8 +278,8 @@ class Field():
 
 def fmain():
     app = QApplication(sys.argv)
-    #f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
-    f3 = "100000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+    #f3 = "100000000000000000000000000000000000000000000000000000000000000000000000000000000"
     field = Field(field=f3)
     print(field)
     start = time()
