@@ -153,6 +153,29 @@ class Field():
         for operation in operations:
             operation()
 
+    def validate_row(self, i):
+        values = []
+        for j in range(self.size):
+            if self.field[i][j] in values:
+                return false
+            values.append(self.field[i][j])
+        return True
+
+    def validate_col(self, j):
+        values = []
+        for i in range(self.size):
+            if self.field[i][j] in values:
+                return false
+            values.append(self.field[i][j])
+        return True
+
+    def validate_district(self, i, j=None):
+        """
+        If j is present that means we are checking a district for current cell
+        """
+        if j is None:
+            pass # TODO CHECkit
+
     def validate(self):
         """
         Checks if generated field is valid
@@ -160,13 +183,13 @@ class Field():
         :return: true if field is valid, false otherwise
         """
         # check rows
-        for row in self.field:
-            if len(set(row)) != self.size:
-                return False
+        for i in range(self.size):
+            if not self.validate_row(i):
+                return false
 
         # check columns
         for j in range(self.size):
-            if len(set([self.field[i][j] for i in range(self.size)])) != self.size:
+            if not self.validate_col(j):
                 return False
 
         # check districts
@@ -223,31 +246,34 @@ class Field():
     def solve(self):
         field_copy = [[cell.value for cell in row] for row in self.field]
         solved = False
-        acc = 0
+        solves = []
 
         def inner_solver(field):
-            nonlocal solved
-            if solved:
-                return
-
             i, j = Field.empty_cell(field)
             nums = Field.occupied_nums(field, i, j)
 
             if i == -1:
-                self.set(field)
-                solved = True
+                # self.set(field)
+                nonlocal solves
+                solves.append(copy(field))
                 return
 
             for x in set(range(1, 10)) - nums:
                 field[i][j] = x
                 inner_solver(copy(field))
-                if solved:
-                    return
 
         inner_solver(field_copy)
 
-        print(acc)
-        return self.validate()
+        print(len(solves))
+        if len(solves) == 1:
+            self.set(solves[0])
+            if self.validate():
+                return True
+            else:
+                self.set(field_copy)
+                return False
+        else:
+            return False
 
     def at(self, i, j):
         return self.field[i][j]
@@ -255,13 +281,15 @@ class Field():
 
 def fmain():
     app = QApplication(sys.argv)
-    f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+    #f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+    f3 = "100000000000000000000000000000000000000000000000000000000000000000000000000000000"
     field = Field(field=f3)
+    print(field)
     start = time()
-    field.solve()
+    print(field.solve())
     print(time() - start)
     print(field)
     sys.exit(app.exec_())
 
 
-# main()
+fmain()

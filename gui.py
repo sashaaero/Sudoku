@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton
+from PyQt5.QtCore import Qt
 from field import Field
 from cell import Cell
 
@@ -32,9 +33,10 @@ class GUI(QWidget):
     def keyPressEvent(self, event):
         if self.active_cell:
             if Qt.Key_1 <= event.key() <= Qt.Key_9:
-                pass # send key
+                self.active_cell.set(value=event.key() - Qt.Key_1 + 1)
             elif event.key() == Qt.Key_Backspace:
                 pass # send erase
+            self.active_cell.repaint()
 
 
     def reactivate(self, cell):

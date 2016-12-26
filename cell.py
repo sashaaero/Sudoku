@@ -28,11 +28,11 @@ class Cell(QWidget):
         return self.value == 0
 
     def set(self, i=None, j=None, value=None):
-        if i:
+        if i is not None:
             self.i = i
-        if j:
+        if j is not None:
             self.j = j
-        if value:
+        if value is not None:
             self.value = value
 
     def paintEvent(self, e):
@@ -90,7 +90,4 @@ class Cell(QWidget):
     def mouseReleaseEvent(self, e):
         #self.emit(SIGNAL('clicked()')) SASI CHE
         self.parent.reactivate(self)
-
-    def keyPressEvent(self, event):
-        print(self.value, ' said that some key was pressed!')
 

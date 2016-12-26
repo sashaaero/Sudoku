@@ -8,7 +8,7 @@ def main():
     ex = GUI()
     sys.exit(app.exec_())
 
-main()
+#main()
 
 
 
