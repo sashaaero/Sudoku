@@ -6,17 +6,22 @@ import sys
 from time import time
 
 class Field():
+    EASY = 40
+    MEDIUM = 35
+    HARD = 30
 
-    def __init__(self, field=None, size=9, gui=None):
+    def __init__(self, field=None, size=9, gui=None, empty=False):
         self.gui = gui
         self.size = size
         self.dsize = size // 3  # district size
         self.field = self.create()
-        if field:
+        self.tier = Field.EASY
+        if empty:
+            self.create()
+        elif field:
             self.set(field)
         else:
-            while not self.validate():
-                self.generate()
+            self.generate()
 
         self.solved = False
 
@@ -96,7 +101,6 @@ class Field():
         rows_l = [i for i in range(self.dsize)]
         del rows_l[choice(rows_l)]
         """
-            Some explanation
             We just pick exceptional row from list of 3 rows
             So, others 2 rows will be swapped
         """
@@ -132,6 +136,13 @@ class Field():
     def generate(self):
         """
         Generates a field for a game
+        1. Creates basic field
+        2. Create list of:
+            a. transpose
+            b. districts swaps
+            c. rows/columns swaps (column swap = transpose -> row swap)
+        3. Shake functions
+        4. Apply them one by one
         :return field: game field
         """
         district_size = self.size // 3
@@ -144,48 +155,77 @@ class Field():
             self.set_values(self.field[i], ins_line)
 
         level = 100  # number of operations to shake field
-        operations = [self.transpose for i in range(level)]
-        operations.extend([self.swap_districts_rows for i in range(level)])
-        operations.extend([self.swap_rows_inside_district for i in range(level)])
+        operations = [self.transpose for _ in range(level)]
+        operations.extend([self.swap_districts_rows for _ in range(level)])
+        operations.extend([self.swap_rows_inside_district for _ in range(level)])
 
         shuffle(operations)
 
         for operation in operations:
             operation()
 
+        for i in range(self.size):
+            for j in range(self.size):
+                val = self.field[i][j]
+                self.field[i][j] = Cell(self.gui, self, i, j, val)
+
+        while not self.validate():
+            self.generate()
+
+        # TODO DELETIONS
+        self.deletions()
+
     def validate_row(self, i):
+        """
+        :param i: row number
+        :return: does this row contain only unique numbers?
+        """
         values = []
         for j in range(self.size):
-            if self.field[i][j] in values:
-                return false
-            values.append(self.field[i][j])
+            if self.field[i][j].value in values:
+                return False
+            if self.field[i][j].value != 0:
+                values.append(self.field[i][j].value)
         return True
 
     def validate_col(self, j):
+        """
+        :param j: columns number
+        :return: @see validate_row
+        """
         values = []
         for i in range(self.size):
-            if self.field[i][j] in values:
-                return false
-            values.append(self.field[i][j])
+            if self.field[i][j].value in values:
+                return False
+            if self.field[i][j].value != 0:
+                values.append(self.field[i][j].value)
         return True
 
-    def validate_district(self, i, j=None):
+    def validate_district(self, i, j):
         """
-        If j is present that means we are checking a district for current cell
+        :param i: row number
+        :param j: column nuber
+        :return: @see validate row
         """
-        if j is None:
-            pass # TODO CHECkit
+        values = []
+        di, dj = (i // self.dsize) * self.dsize, (j // self.dsize) * self.dsize
+        for x in range(di, di+self.dsize):
+            for y in range(dj, dj+self.dsize):
+                if self.field[x][y].value in values:
+                    return False
+                if self.field[x][y].value != 0:
+                    values.append(self.field[x][y].value)
+        return True
+
 
     def validate(self):
         """
-        Checks if generated field is valid
-        Can be used as solve checker
         :return: true if field is valid, false otherwise
         """
         # check rows
         for i in range(self.size):
             if not self.validate_row(i):
-                return false
+                return False
 
         # check columns
         for j in range(self.size):
@@ -193,7 +233,7 @@ class Field():
                 return False
 
         # check districts
-        d_size = self.size // 3
+        """d_size = self.size // 3
         for i in range(d_size):
             for j in range(d_size):
                 # start point is i * 3, j * 3
@@ -203,13 +243,21 @@ class Field():
                         d_list.append(self.field[i * d_size + x][j * d_size + y])
 
                 if len(set(d_list)) != self.size:
-                    return False
+                    return False"""
+
+        for i in range(self.dsize):
+            for j in range(self.dsize):
+                self.validate_district(i * self.dsize, j * self.dsize)
 
         return True
 
     @staticmethod
     def occupied_nums(field, i, j):
         """
+        This method is static cause used in solver for a field of numbers, not cells
+        :param field: given field
+        :param i: row number
+        :param j: column number
         :return: set of numbers that are appearing in row, column and district
         """
         nums = set()
@@ -243,20 +291,28 @@ class Field():
 
         return -1, -1
 
-    def solve(self):
+    def solve(self, make_set=True):
+        """
+        Method uses recursive solve algorithm:
+            1. Find empty cell
+            2. Find numbers which can be applied there
+            3. In loop put them there and recursively solve new field with new number there
+            4. If there is no empty cells - that means we have found a solution
+            5. Accumulate number of solutions
+        :return: true if only 1 solution was found and this solution is valid
+        """
         field_copy = [[cell.value for cell in row] for row in self.field]
-        solved = False
-        solves = 0
+        solutions = 0
 
         def inner_solver(field):
             i, j = Field.empty_cell(field)
             nums = Field.occupied_nums(field, i, j)
 
             if i == -1:
-                self.set(field)
-                nonlocal solves
-                solves += 1
-                #solves.append(copy(field))
+                if make_set:
+                    self.set(field)
+                nonlocal solutions
+                solutions += 1
                 return
 
             for x in set(range(1, 10)) - nums:
@@ -265,22 +321,50 @@ class Field():
 
         inner_solver(field_copy)
 
-        return solves == 1 and self.validate()
+        return solutions == 1 and (self.validate() or not make_set)
 
     def deletions(self):
-        tier = 25
-        for x in range(tier):
-            pass
+        """
+        Deletes elements from generated puzzle
+        1. Pick non-empty cell
+        2. If didnt pick it - remove value from there
+        3. Check if only 1 solution exists
+        4. Repeat
+        """
+        # non_empty = [(i, j) for j in range(self.size) for i in range(self.size) if self.field[i][j].value != 0]
+        non_empty = [(i, j) for j in range(self.size) for i in range(self.size) if self.field[i][j]]
+        while len(non_empty) >= self.tier:
+            # delete elements
+            already_seen = set()
+            i, j = choice(list(set(non_empty) - already_seen))
+            old_value = self.field[i][j].value
+            self.field[i][j].value = 0
+            while not self.solve(make_set=False):
+                already_seen.add((i, j))
+                self.field[i][j].value = old_value
+
+                i, j = choice(list(set(non_empty) - already_seen))
+                old_value = self.field[i][j].value
+                self.field[i][j].value = 0
+
+            non_empty.remove((i, j))
+            # print(self)
+            print(len(non_empty))
 
     def at(self, i, j):
+        """
+        :param i: row number
+        :param j: column number
+        :return: value of i, j cell (cause there is no way to overload [][] operator)
+        """
         return self.field[i][j]
 
 
 def fmain():
     app = QApplication(sys.argv)
-    f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+    #f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
     #f3 = "100000000000000000000000000000000000000000000000000000000000000000000000000000000"
-    field = Field(field=f3)
+    field = Field()
     print(field)
     start = time()
     print(field.solve())
@@ -289,4 +373,4 @@ def fmain():
     sys.exit(app.exec_())
 
 
-fmain()
+# fmain()

@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter, QFont, QColor, QPen
 from PyQt5.QtCore import Qt, QEvent
 
+
 class Cell(QWidget):
 
     def __init__(self, parent, field, i, j, value):
@@ -11,7 +12,6 @@ class Cell(QWidget):
         self.i = i
         self.j = j
         self.value = value
-        #self.resize(50, 50)
         self.active = False
         self.valid = True
 
@@ -42,20 +42,23 @@ class Cell(QWidget):
         qp.end()
 
     def draw(self, painter, event):
-
         font = QFont('Ubuntu Mono', 24, QFont.Light)
         painter.setFont(font)
 
         # validate
+        self.valid = \
+            self.field.validate_col(self.j) and \
+            self.field.validate_row(self.i) and \
+            self.field.validate_district(self.i, self.j)
+
         if not self.valid:
             painter.fillRect(0, 0, self.size().width(), self.size().height(), Qt.red)
 
         # drawing main border
-        painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
+        painter.setPen(QPen(Qt.blue if self.active else Qt.black, 2, Qt.SolidLine))
         painter.drawRect(0, 0, self.size().width(), self.size().height())
 
         # drawing exclusive borders
-
         if self.j == 2 or self.j == 5:
             painter.setPen(QPen(Qt.black, 4, Qt.SolidLine))
             painter.drawLine(self.size().width(), 0, self.size().width(), self.size().height())
@@ -73,10 +76,7 @@ class Cell(QWidget):
             painter.drawLine(0, 0, self.size().width(), 0)
 
         # change color if active
-        if self.active:
-            painter.setPen(QPen(Qt.blue, 2, Qt.SolidLine))
-
-
+        painter.setPen(QPen(Qt.black, 2, Qt.SolidLine))
         painter.drawText(event.rect(), Qt.AlignCenter, str(self))
 
     def activate(self):
@@ -88,6 +88,5 @@ class Cell(QWidget):
         self.repaint()
 
     def mouseReleaseEvent(self, e):
-        #self.emit(SIGNAL('clicked()')) SASI CHE
         self.parent.reactivate(self)
 
