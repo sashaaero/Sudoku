@@ -15,7 +15,7 @@ class Field():
         self.size = size
         self.dsize = size // 3  # district size
         self.field = self.create()
-        self.tier = Field.EASY
+        self.tier = Field.MEDIUM
         if empty:
             self.create()
         elif field:
@@ -358,6 +358,9 @@ class Field():
         :return: value of i, j cell (cause there is no way to overload [][] operator)
         """
         return self.field[i][j]
+
+    def extract(self):
+        return ''.join(''.join(str(cell.value) for cell in row) for row in self.field)
 
 
 def fmain():

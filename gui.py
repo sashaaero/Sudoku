@@ -9,7 +9,7 @@ class GUI(QWidget):
     def __init__(self):
         super().__init__()
         self.active_cell = None
-        self.field = Field(gui=self, empty=True)
+        self.field = Field(gui=self)
         print(self.field)
 
         grid = QGridLayout()
