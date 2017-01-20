@@ -7,8 +7,6 @@ import storage
 def main():
     app = QApplication(sys.argv)
     ex = GUI()
-    print(ex.field.extract())
-    storage.get_fields()
     sys.exit(app.exec_())
 
 main()

@@ -25,12 +25,11 @@ class GUI(QWidget):
         self.show()
 
     def operate(self):
-        print("was called")
         self.field.solve()
         self.apply()
 
     def keyPressEvent(self, event):
-        if self.active_cell:
+        if self.active_cell and self.active_cell.changeable:
             if Qt.Key_1 <= event.key() <= Qt.Key_9:
                 self.active_cell.set(value=event.key() - Qt.Key_1 + 1)
             elif event.key() == Qt.Key_Backspace:

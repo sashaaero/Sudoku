@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication
 import sys
 from time import time
 
+
 class Field():
     EASY = 40
     MEDIUM = 35
@@ -20,6 +21,7 @@ class Field():
             self.create()
         elif field:
             self.set(field)
+            self.apply_changeability()
         else:
             self.generate()
 
@@ -37,6 +39,10 @@ class Field():
         return True
 
     def set(self, field):
+        """
+        Sets field from given argument
+        :param field: str or field
+        """
         if type(field) == str:
             for i in range(self.size):
                 for j in range(self.size):
@@ -63,7 +69,7 @@ class Field():
     @staticmethod
     def set_values(line1, line2):
         """
-        Put values from line1 into line1 in place
+        Put values from line2 into line1 in place
         :param line1: line that should be edited
         :param line2: values for line1
         :return: None
@@ -172,8 +178,15 @@ class Field():
         while not self.validate():
             self.generate()
 
-        # TODO DELETIONS
         self.deletions()
+
+        self.apply_changeability()
+
+    def apply_changeability(self):
+        for row in self.field:
+            for cell in row:
+                if cell.empty():
+                    cell.changeable = True
 
     def validate_row(self, i):
         """
@@ -217,7 +230,6 @@ class Field():
                     values.append(self.field[x][y].value)
         return True
 
-
     def validate(self):
         """
         :return: true if field is valid, false otherwise
@@ -233,21 +245,10 @@ class Field():
                 return False
 
         # check districts
-        """d_size = self.size // 3
-        for i in range(d_size):
-            for j in range(d_size):
-                # start point is i * 3, j * 3
-                d_list = []
-                for x in range(d_size):
-                    for y in range(d_size):
-                        d_list.append(self.field[i * d_size + x][j * d_size + y])
-
-                if len(set(d_list)) != self.size:
-                    return False"""
-
         for i in range(self.dsize):
             for j in range(self.dsize):
-                self.validate_district(i * self.dsize, j * self.dsize)
+                if not self.validate_district(i * self.dsize, j * self.dsize):
+                    return False
 
         return True
 
@@ -331,7 +332,6 @@ class Field():
         3. Check if only 1 solution exists
         4. Repeat
         """
-        # non_empty = [(i, j) for j in range(self.size) for i in range(self.size) if self.field[i][j].value != 0]
         non_empty = [(i, j) for j in range(self.size) for i in range(self.size) if self.field[i][j]]
         while len(non_empty) >= self.tier:
             # delete elements
@@ -348,7 +348,6 @@ class Field():
                 self.field[i][j].value = 0
 
             non_empty.remove((i, j))
-            # print(self)
             print(len(non_empty))
 
     def at(self, i, j):
@@ -360,13 +359,23 @@ class Field():
         return self.field[i][j]
 
     def extract(self):
+        """
+        Extracts current field as string to store in data base
+        :return: field representation as string
+        """
         return ''.join(''.join(str(cell.value) for cell in row) for row in self.field)
 
+    def solved(self):
+        """
+        :return: True is current field is solved, False otherwise
+        """
+        return len(list(filter(
+            lambda c: not c.empty() and c.valid,
+            [self.field[x // self.size][x % self.size] for x in range(self.size**2)]))
+        ) == 0 # Faster then using validation function cause we should count for empty cells
 
 def fmain():
     app = QApplication(sys.argv)
-    #f3 = "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
-    #f3 = "100000000000000000000000000000000000000000000000000000000000000000000000000000000"
     field = Field()
     print(field)
     start = time()

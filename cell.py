@@ -14,6 +14,7 @@ class Cell(QWidget):
         self.value = value
         self.active = False
         self.valid = True
+        self.changeable = False
 
     def __hash__(self):
         return self.value
@@ -42,7 +43,7 @@ class Cell(QWidget):
         qp.end()
 
     def draw(self, painter, event):
-        font = QFont('Ubuntu Mono', 24, QFont.Light)
+        font = QFont('Ubuntu Mono', 24, QFont.Light if self.changeable else QFont.Bold)
         painter.setFont(font)
 
         # validate
@@ -50,6 +51,9 @@ class Cell(QWidget):
             self.field.validate_col(self.j) and \
             self.field.validate_row(self.i) and \
             self.field.validate_district(self.i, self.j)
+
+        if not self.changeable:
+            painter.fillRect(0, 0, self.size().width(), self.size().height(), Qt.gray)
 
         if not self.valid:
             painter.fillRect(0, 0, self.size().width(), self.size().height(), Qt.red)
