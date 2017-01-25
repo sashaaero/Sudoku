@@ -10,15 +10,17 @@ with sql.connect(db_name) as connection:
     if len(result.fetchall()) == 0:
         cursor.execute('create table fields(data, was_solved)')
 
+
 def save_field(field, was_solved=False):
     with sql.connect(db_name) as connection:
         cursor = connection.cursor()
         cursor.execute('insert into fields values("%s", %r)' % (field, was_solved))
 
+
 def set_solved(field):
     with sql.connect(db_name) as connection:
         cursor = connection.cursor()
-        cursor.execute() # Надо поле поменять
+        cursor.execute('update ') # TODO Надо поле поменять
 
 
 def get_fields():

@@ -1,12 +1,12 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QGridLayout, QApplication
-from gui import GUI
+from sudokupanel import MainWindow
 import storage
 
 
 def main():
     app = QApplication(sys.argv)
-    ex = GUI()
+    ex = MainWindow()
     sys.exit(app.exec_())
 
 main()

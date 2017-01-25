@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, QEvent
 
 
 class Cell(QWidget):
+    START_POSITION = 50
 
     def __init__(self, parent, field, i, j, value):
         super().__init__()
