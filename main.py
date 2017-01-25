@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QGridLayout, QApplication
-from sudokupanel import MainWindow
+from gui import MainWindow
 import storage
 
 

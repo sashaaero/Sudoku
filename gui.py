@@ -1,25 +1,25 @@
-from PyQt5.QtWidgets import QWidget, QGridLayout, QPushButton, QMainWindow, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QGridLayout, QFormLayout
 from PyQt5.QtCore import Qt
 from field import Field
-from cell import Cell
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.grid = QGridLayout()
-        self.setLayout(self.grid)
-        self.chooseButton = QPushButton("Выбрать")
-        self.grid.addWidget(self.chooseButton)
-        self.grid.addWidget(SudokuPanel(self))
-
-        self.resize(450, 450)
-        self.show()
 
 
-class SudokuPanel(QWidget):
+class Before(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.layout = QFormLayout()
+
+
+
+class GUI(QWidget):
+
+    def __init__(self, parent=None):
         super().__init__(parent)
+
+
+
+
+
         self.active_cell = None
         self.field = Field(gui=self)
 
