@@ -10,16 +10,10 @@ class Before(QWidget):
         self.layout = QFormLayout()
 
 
-
 class GUI(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
-
-
-
-
         self.active_cell = None
         self.field = Field(gui=self)
 
